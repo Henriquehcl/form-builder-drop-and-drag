@@ -1,0 +1,24 @@
+/* src/components/Sidebar/Sidebar.css */
+
+.sidebar {
+  height: 100%;
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #e9ecef;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.sidebar-content {
+  padding: 1rem;
+}

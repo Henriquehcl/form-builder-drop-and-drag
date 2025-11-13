@@ -1,0 +1,218 @@
+/**src/styles/FormBuilder.css
+*/
+
+.form-builder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-builder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+  background-color: #ffffff;
+}
+
+.form-builder-header h2 {
+  margin: 0;
+  color: #495057;
+  font-size: 1.5rem;
+}
+
+.form-builder-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+  border-color: #545b62;
+}
+
+.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #138496;
+  border-color: #138496;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #218838;
+}
+
+.form-builder-area {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: 500px;
+  border: 2px dashed #dee2e6;
+  border-radius: 0.5rem;
+  margin: 1rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: #6c757d;
+  padding: 3rem;
+}
+
+.empty-state p {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state small {
+  font-size: 0.875rem;
+}
+
+.form-elements-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-element {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.form-element:hover {
+  border-color: #007bff;
+}
+
+.form-element.selected {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.25rem;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.checkbox-label,
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.workflow-step {
+  background-color: #e9ecef;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  padding: 1rem;
+}
+
+.workflow-step h3 {
+  margin: 0 0 1rem 0;
+  color: #495057;
+  font-size: 1.125rem;
+}
+
+.step-content {
+  min-height: 100px;
+  border: 1px dashed #adb5bd;
+  border-radius: 0.25rem;
+  padding: 1rem;
+}
+
+.element-actions {
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-action {
+  padding: 0.25rem 0.5rem;
+  background-color: #6c757d;
+  border: none;
+  border-radius: 0.25rem;
+  color: white;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.btn-action:hover {
+  background-color: #545b62;
+}
