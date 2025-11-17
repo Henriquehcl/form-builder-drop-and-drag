@@ -1,5 +1,4 @@
 //src/components/FormBuilder/FormBuilder.jsx
-
 import React from 'react';
 import '../../styles/FormBuilder.css';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
@@ -16,13 +15,15 @@ const FormBuilder = () => {
     isPreviewMode,
     addFormElement,
     setSelectedElement,
-    togglePreviewMode
+    togglePreviewMode,
+    setDraggedElementId,
+    handleElementDrop // Renomeado para evitar conflito
   } = useFormBuilder();
 
   /**
-   * Manipula o drop de elementos na área de construção
+   * Manipula o drop de NOVOS elementos na área de construção
    */
-  const handleDrop = (e) => {
+  const handleNewElementDrop = (e) => {
     e.preventDefault();
     const elementType = e.dataTransfer.getData('application/form-element');
     
@@ -67,7 +68,7 @@ const FormBuilder = () => {
 
       <div
         className="form-builder-area"
-        onDrop={handleDrop}
+        onDrop={handleNewElementDrop} // Usando a função renomeada
         onDragOver={handleDragOver}
       >
         {formElements.length === 0 ? (
@@ -84,6 +85,8 @@ const FormBuilder = () => {
                 index={index}
                 isSelected={selectedElement?.id === element.id}
                 onSelect={handleElementSelect}
+                setDraggedElementId={setDraggedElementId}
+                handleElementDrop={handleElementDrop} // Passando a função do contexto
               />
             ))}
           </div>
@@ -96,7 +99,58 @@ const FormBuilder = () => {
 /**
  * Componente individual de elemento do formulário
  */
-const FormElement = ({ element, isSelected, onSelect }) => {
+const FormElement = ({ 
+  element, 
+  isSelected, 
+  onSelect, 
+  setDraggedElementId, 
+  handleElementDrop 
+}) => {
+  /**
+   * Manipula o início do drag para reordenar
+   */
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('application/form-element-id', element.id);
+    setDraggedElementId(element.id);
+    e.currentTarget.classList.add('dragging');
+  };
+
+  /**
+   * Manipula o fim do drag
+   */
+  const handleDragEnd = (e) => {
+    e.currentTarget.classList.remove('dragging');
+    setDraggedElementId(null);
+  };
+
+  /**
+   * Permite o drop no elemento para reordenar
+   */
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('drag-over');
+  };
+
+  /**
+   * Remove a classe quando o drag sai do elemento
+   */
+  const handleDragLeave = (e) => {
+    e.currentTarget.classList.remove('drag-over');
+  };
+
+  /**
+   * Manipula o drop para reordenar
+   */
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    const draggedId = e.dataTransfer.getData('application/form-element-id');
+    if (draggedId && draggedId !== element.id) {
+      handleElementDrop(element.id);
+    }
+  };
+
   const handleClick = (e) => {
     e.stopPropagation();
     onSelect(element);
@@ -168,7 +222,8 @@ const FormElement = ({ element, isSelected, onSelect }) => {
           <div className="form-field">
             <label>{element.label}</label>
             <select>
-              {element.options.map((option, index) => (
+              <option value="">Select an option</option>
+              {element.options && element.options.map((option, index) => (
                 <option key={index} value={option}>
                   {option}
                 </option>
@@ -201,8 +256,22 @@ const FormElement = ({ element, isSelected, onSelect }) => {
     <div
       className={`form-element ${isSelected ? 'selected' : ''}`}
       onClick={handleClick}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
+      {/* Ícone de arrastar - setas para cima/baixo */}
+      <div className="drag-handle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7 19v-2h10v2H7zm0-6v-2h10v2H7zm0-6V5h10v2H7z"/>
+        </svg>
+      </div>
+      
       {getElementContent()}
+      
       {isSelected && (
         <div className="element-actions">
           <button className="btn-action">Edit</button>

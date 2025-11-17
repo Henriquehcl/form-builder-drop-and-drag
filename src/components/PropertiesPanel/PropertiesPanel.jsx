@@ -1,5 +1,4 @@
 //src/components/PropertiesPanel/PropertiesPanel.jsx
-
 import React from 'react';
 import '../../styles/PropertiesPanel.css';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
@@ -9,7 +8,7 @@ import { useFormBuilder } from '../../hooks/useFormBuilder';
  * Mostra diferentes opções baseadas no tipo de elemento
  */
 const PropertiesPanel = () => {
-  const { selectedElement, updateElementProperties } = useFormBuilder();
+  const { selectedElement, updateElementProperties, removeElement } = useFormBuilder();
 
   /**
    * Atualiza uma propriedade do elemento
@@ -17,6 +16,15 @@ const PropertiesPanel = () => {
   const handlePropertyChange = (property, value) => {
     if (selectedElement) {
       updateElementProperties(selectedElement.id, { [property]: value });
+    }
+  };
+
+  /**
+   * Remove o elemento selecionado
+   */
+  const handleDeleteElement = () => {
+    if (selectedElement) {
+      removeElement(selectedElement.id);
     }
   };
 
@@ -132,7 +140,25 @@ const PropertiesPanel = () => {
         <div className="property-group">
           <h4>Actions</h4>
           <div className="property-actions">
-            <button className="btn btn-danger">Delete Element</button>
+            <button 
+              className="btn btn-danger" 
+              onClick={handleDeleteElement}
+            >
+              Delete Element
+            </button>
+          </div>
+        </div>
+
+        {/* Informações de drag and drop */}
+        <div className="property-group">
+          <h4>Drag & Drop</h4>
+          <div className="drag-info">
+            <p>💡 <strong>Drag to reorder:</strong></p>
+            <ul>
+              <li>Use the drag handle (⋮⋮) to reorder elements</li>
+              <li>Drop between elements to reposition</li>
+              <li>Visual feedback shows drop zones</li>
+            </ul>
           </div>
         </div>
       </div>

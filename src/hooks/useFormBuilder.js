@@ -1,5 +1,4 @@
 //src/hooks/useFormBuilder.js
-
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 // Context para gerenciar o estado global do form builder
@@ -29,17 +28,20 @@ export const FormBuilderProvider = ({ children }) => {
   // Estado do modo de preview
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
+  // Elemento sendo arrastado atualmente
+  const [draggedElement, setDraggedElement] = useState(null);
+
   /**
    * Adiciona um novo elemento ao formulário
    */
   const addFormElement = useCallback((elementType) => {
     const newElement = {
-      id: `element-${Date.now()}`,
+      id: `element-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: elementType,
-      label: `${elementType} Field`,
+      label: `${elementType.replace('-', ' ')} Field`,
       required: false,
       placeholder: '',
-      options: elementType === 'dropdown' ? ['Option 1', 'Option 2'] : [],
+      options: ['Option 1', 'Option 2'],
       value: ''
     };
 
@@ -74,16 +76,38 @@ export const FormBuilderProvider = ({ children }) => {
   }, [selectedElement]);
 
   /**
-   * Move um elemento na lista (reordenar)
+   * Move um elemento na lista (reordenar via drag and drop)
    */
-  const moveElement = useCallback((fromIndex, toIndex) => {
+  const moveElement = useCallback((draggedId, targetId) => {
     setFormElements(prev => {
-      const newElements = [...prev];
-      const [movedElement] = newElements.splice(fromIndex, 1);
-      newElements.splice(toIndex, 0, movedElement);
-      return newElements;
+      const elements = [...prev];
+      const draggedIndex = elements.findIndex(el => el.id === draggedId);
+      const targetIndex = elements.findIndex(el => el.id === targetId);
+      
+      if (draggedIndex === -1 || targetIndex === -1) return prev;
+      
+      const [movedElement] = elements.splice(draggedIndex, 1);
+      elements.splice(targetIndex, 0, movedElement);
+      return elements;
     });
   }, []);
+
+  /**
+   * Define o elemento que está sendo arrastado
+   */
+  const setDraggedElementId = useCallback((elementId) => {
+    setDraggedElement(elementId);
+  }, []);
+
+  /**
+   * Manipula o drop para reordenar elementos (renomeado para evitar conflito)
+   */
+  const handleElementDrop = useCallback((targetId) => {
+    if (draggedElement && draggedElement !== targetId) {
+      moveElement(draggedElement, targetId);
+    }
+    setDraggedElement(null);
+  }, [draggedElement, moveElement]);
 
   /**
    * Alterna entre modo de edição e preview
@@ -96,11 +120,14 @@ export const FormBuilderProvider = ({ children }) => {
     formElements,
     selectedElement,
     isPreviewMode,
+    draggedElement,
     addFormElement,
     updateElementProperties,
     removeElement,
     moveElement,
     setSelectedElement,
+    setDraggedElementId,
+    handleElementDrop, // Nome alterado
     togglePreviewMode
   };
 
