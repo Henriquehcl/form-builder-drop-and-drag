@@ -1,4 +1,3 @@
-//src/components/FormBuilder/FormBuilder.jsx
 import React from 'react';
 import '../../styles/FormBuilder.css';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
@@ -13,11 +12,13 @@ const FormBuilder = () => {
     formElements,
     selectedElement,
     isPreviewMode,
+    layoutMode,
     addFormElement,
     setSelectedElement,
     togglePreviewMode,
     setDraggedElementId,
-    handleElementDrop // Renomeado para evitar conflito
+    handleElementDrop,
+    setGlobalLayoutMode
   } = useFormBuilder();
 
   /**
@@ -47,48 +48,133 @@ const FormBuilder = () => {
     setSelectedElement(element);
   };
 
+  /**
+   * Alterna entre layout vertical e grid
+   */
+  const toggleLayoutMode = (mode) => {
+    setGlobalLayoutMode(mode);
+  };
+
   // Se estiver no modo preview, mostra o preview
   if (isPreviewMode) {
     return <Preview />;
   }
 
+  // Função para agrupar elementos em linhas baseado na largura
+  const renderFormRows = () => {
+    if (formElements.length === 0) return null;
+
+    const rows = [];
+    let currentRow = [];
+    let currentRowWidth = 0;
+
+    formElements.forEach((element, index) => {
+      const elementWidth = element.width === 'full' ? 2 : 1; // full = 2 unidades, half = 1 unidade
+      
+      // Se o elemento não couber na linha atual OU estamos no modo vertical
+      if (layoutMode === 'vertical' || currentRowWidth + elementWidth > 2) {
+        // Fecha a linha atual
+        if (currentRow.length > 0) {
+          rows.push(
+            <div key={`row-${rows.length}`} className="form-row">
+              {currentRow}
+            </div>
+          );
+        }
+        // Começa nova linha
+        currentRow = [];
+        currentRowWidth = 0;
+      }
+      
+      // Adiciona elemento à linha atual
+      currentRow.push(
+        <FormElement
+          key={element.id}
+          element={element}
+          index={index}
+          isSelected={selectedElement?.id === element.id}
+          onSelect={handleElementSelect}
+          setDraggedElementId={setDraggedElementId}
+          handleElementDrop={handleElementDrop}
+          layoutMode={layoutMode}
+        />
+      );
+      
+      currentRowWidth += elementWidth;
+    });
+    
+    // Adiciona última linha se houver elementos
+    if (currentRow.length > 0) {
+      rows.push(
+        <div key={`row-${rows.length}`} className="form-row">
+          {currentRow}
+        </div>
+      );
+    }
+    
+    return rows;
+  };
+
   return (
     <div className="form-builder">
       <div className="form-builder-header">
         <h2>Form Builder</h2>
-        <div className="form-builder-actions">
-          <button className="btn btn-secondary">CANCEL</button>
-          <button className="btn btn-primary">SAVE</button>
-          <button className="btn btn-info" onClick={togglePreviewMode}>
-            PREVIEW
-          </button>
-          <button className="btn btn-success">PUBLISH</button>
+        <div className="form-builder-controls">
+          <div className="layout-toggle">
+            <button 
+              className={`layout-btn ${layoutMode === 'vertical' ? 'active' : ''}`}
+              onClick={() => toggleLayoutMode('vertical')}
+              title="Layout vertical (1 coluna)"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 13h18v-2H3v2zm0 4h18v-2H3v2zm0-8h18V7H3v2z"/>
+              </svg>
+              <span>Vertical</span>
+            </button>
+            <button 
+              className={`layout-btn ${layoutMode === 'grid' ? 'active' : ''}`}
+              onClick={() => toggleLayoutMode('grid')}
+              title="Layout em grid (2 colunas)"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+              </svg>
+              <span>Grid</span>
+            </button>
+          </div>
+          <div className="form-builder-actions">
+            <button className="btn btn-secondary">CANCEL</button>
+            <button className="btn btn-primary">SAVE</button>
+            <button className="btn btn-info" onClick={togglePreviewMode}>
+              PREVIEW
+            </button>
+            <button className="btn btn-success">PUBLISH</button>
+          </div>
         </div>
       </div>
 
       <div
         className="form-builder-area"
-        onDrop={handleNewElementDrop} // Usando a função renomeada
+        onDrop={handleNewElementDrop}
         onDragOver={handleDragOver}
       >
         {formElements.length === 0 ? (
           <div className="empty-state">
             <p>Drag and drop form elements here</p>
             <small>Start building your form by dragging elements from the sidebar</small>
+            <div className="layout-info">
+              <p><strong>Layout Options:</strong></p>
+              <ul>
+                <li>Use <strong>Vertical Layout</strong> for 1 column</li>
+                <li>Use <strong>Grid Layout</strong> for 2 columns</li>
+                <li>In Grid mode, you can toggle element width between full and half</li>
+                <li>Some elements (textarea, workflow) always use full width</li>
+              </ul>
+            </div>
           </div>
         ) : (
-          <div className="form-elements-container">
-            {formElements.map((element, index) => (
-              <FormElement
-                key={element.id}
-                element={element}
-                index={index}
-                isSelected={selectedElement?.id === element.id}
-                onSelect={handleElementSelect}
-                setDraggedElementId={setDraggedElementId}
-                handleElementDrop={handleElementDrop} // Passando a função do contexto
-              />
-            ))}
+          <div className={`form-elements-container ${layoutMode}`}>
+            {renderFormRows()}
           </div>
         )}
       </div>
@@ -104,8 +190,11 @@ const FormElement = ({
   isSelected, 
   onSelect, 
   setDraggedElementId, 
-  handleElementDrop 
+  handleElementDrop,
+  layoutMode
 }) => {
+  const { toggleElementWidth } = useFormBuilder();
+
   /**
    * Manipula o início do drag para reordenar
    */
@@ -154,6 +243,14 @@ const FormElement = ({
   const handleClick = (e) => {
     e.stopPropagation();
     onSelect(element);
+  };
+
+  /**
+   * Alterna a largura do elemento entre full e half
+   */
+  const handleToggleWidth = (e) => {
+    e.stopPropagation();
+    toggleElementWidth(element.id);
   };
 
   const getElementContent = () => {
@@ -242,6 +339,20 @@ const FormElement = ({
           </div>
         );
       
+      case 'container-heading':
+        return (
+          <div className="container-heading">
+            <h2>{element.label || 'Container Heading'}</h2>
+          </div>
+        );
+      
+      case 'container-subheading':
+        return (
+          <div className="container-subheading">
+            <h3>{element.label || 'Container Subheading'}</h3>
+          </div>
+        );
+      
       default:
         return (
           <div className="form-field">
@@ -252,9 +363,13 @@ const FormElement = ({
     }
   };
 
+  // Determina classes CSS baseadas na largura
+  const widthClass = element.width === 'full' ? 'full-width' : 'half-width';
+  const canToggleWidth = !['workflow-step', 'textarea', 'container-heading', 'container-subheading'].includes(element.type);
+
   return (
     <div
-      className={`form-element ${isSelected ? 'selected' : ''}`}
+      className={`form-element ${isSelected ? 'selected' : ''} ${widthClass}`}
       onClick={handleClick}
       draggable
       onDragStart={handleDragStart}
@@ -274,6 +389,15 @@ const FormElement = ({
       
       {isSelected && (
         <div className="element-actions">
+          {layoutMode === 'grid' && canToggleWidth && (
+            <button 
+              className="btn-action" 
+              onClick={handleToggleWidth}
+              title={`Toggle width: ${element.width === 'full' ? 'Make half width' : 'Make full width'}`}
+            >
+              {element.width === 'full' ? '½ Width' : 'Full Width'}
+            </button>
+          )}
           <button className="btn-action">Edit</button>
           <button className="btn-action">Delete</button>
         </div>

@@ -1,4 +1,3 @@
-//src/hooks/useFormBuilder.js
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 // Context para gerenciar o estado global do form builder
@@ -31,6 +30,9 @@ export const FormBuilderProvider = ({ children }) => {
   // Elemento sendo arrastado atualmente
   const [draggedElement, setDraggedElement] = useState(null);
 
+  // Layout mode global
+  const [layoutMode, setLayoutMode] = useState('vertical'); // 'vertical' ou 'grid'
+
   /**
    * Adiciona um novo elemento ao formulário
    */
@@ -42,8 +44,18 @@ export const FormBuilderProvider = ({ children }) => {
       required: false,
       placeholder: '',
       options: ['Option 1', 'Option 2'],
-      value: ''
+      value: '',
+      width: 'full' // 'full' ou 'half' - propriedade individual de cada elemento
     };
+
+    // Para alguns elementos, definir largura padrão como full
+    const fullWidthElements = ['workflow-step', 'textarea', 'container-heading', 'container-subheading'];
+    if (fullWidthElements.includes(elementType)) {
+      newElement.width = 'full';
+    } else {
+      // Para outros elementos, começar com half se estiver no modo grid
+      newElement.width = 'half';
+    }
 
     setFormElements(prev => [...prev, newElement]);
     setSelectedElement(newElement);
@@ -116,10 +128,50 @@ export const FormBuilderProvider = ({ children }) => {
     setIsPreviewMode(prev => !prev);
   }, []);
 
+  /**
+   * Alterna o modo de layout
+   */
+  const setGlobalLayoutMode = useCallback((mode) => {
+    setLayoutMode(mode);
+    
+    // Quando mudar para grid, ajusta elementos pequenos para half width
+    if (mode === 'grid') {
+      setFormElements(prev => prev.map(element => {
+        const fullWidthElements = ['workflow-step', 'textarea', 'container-heading', 'container-subheading'];
+        if (!fullWidthElements.includes(element.type) && element.width === 'full') {
+          return { ...element, width: 'half' };
+        }
+        return element;
+      }));
+    }
+  }, []);
+
+  /**
+   * Alterna a largura de um elemento entre full e half
+   */
+  const toggleElementWidth = useCallback((elementId) => {
+    setFormElements(prev =>
+      prev.map(element =>
+        element.id === elementId 
+          ? { ...element, width: element.width === 'full' ? 'half' : 'full' }
+          : element
+      )
+    );
+    
+    // Atualiza também o elemento selecionado se for o mesmo
+    if (selectedElement && selectedElement.id === elementId) {
+      setSelectedElement(prev => ({ 
+        ...prev, 
+        width: prev.width === 'full' ? 'half' : 'full' 
+      }));
+    }
+  }, [selectedElement]);
+
   const value = {
     formElements,
     selectedElement,
     isPreviewMode,
+    layoutMode,
     draggedElement,
     addFormElement,
     updateElementProperties,
@@ -127,8 +179,10 @@ export const FormBuilderProvider = ({ children }) => {
     moveElement,
     setSelectedElement,
     setDraggedElementId,
-    handleElementDrop, // Nome alterado
-    togglePreviewMode
+    handleElementDrop,
+    togglePreviewMode,
+    setGlobalLayoutMode,
+    toggleElementWidth
   };
 
   return (

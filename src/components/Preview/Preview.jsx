@@ -1,5 +1,3 @@
-//src/components/Preview/Preview.jsx
-
 import React from 'react';
 import '../../styles/Preview.css';
 import { useFormBuilder } from '../../hooks/useFormBuilder';
@@ -12,13 +10,28 @@ const Preview = () => {
   const { formElements, togglePreviewMode } = useFormBuilder();
 
   /**
+   * Verifica se um elemento deve ocupar linha inteira no preview
+   */
+  const shouldTakeFullWidth = (element) => {
+    const fullWidthElements = [
+      'workflow-step', 
+      'textarea', 
+      'container-heading',
+      'container-subheading'
+    ];
+    return fullWidthElements.includes(element.type);
+  };
+
+  /**
    * Renderiza um elemento do formulário no modo preview
    */
   const renderFormElement = (element) => {
+    const isFullWidth = shouldTakeFullWidth(element);
+    
     switch (element.type) {
       case 'text-field':
         return (
-          <div className="preview-field" key={element.id}>
+          <div className={`preview-field ${isFullWidth ? 'full-width' : ''}`} key={element.id}>
             <label>
               {element.label}
               {element.required && <span className="required">*</span>}
@@ -33,7 +46,7 @@ const Preview = () => {
       
       case 'textarea':
         return (
-          <div className="preview-field" key={element.id}>
+          <div className="preview-field full-width" key={element.id}>
             <label>
               {element.label}
               {element.required && <span className="required">*</span>}
@@ -48,7 +61,7 @@ const Preview = () => {
       
       case 'date-picker':
         return (
-          <div className="preview-field" key={element.id}>
+          <div className={`preview-field ${isFullWidth ? 'full-width' : ''}`} key={element.id}>
             <label>
               {element.label}
               {element.required && <span className="required">*</span>}
@@ -62,7 +75,7 @@ const Preview = () => {
       
       case 'time':
         return (
-          <div className="preview-field" key={element.id}>
+          <div className={`preview-field ${isFullWidth ? 'full-width' : ''}`} key={element.id}>
             <label>
               {element.label}
               {element.required && <span className="required">*</span>}
@@ -76,7 +89,7 @@ const Preview = () => {
       
       case 'checkbox':
         return (
-          <div className="preview-field" key={element.id}>
+          <div className={`preview-field ${isFullWidth ? 'full-width' : ''}`} key={element.id}>
             <label className="checkbox-preview">
               <input
                 type="checkbox"
@@ -90,7 +103,7 @@ const Preview = () => {
       
       case 'radio':
         return (
-          <div className="preview-field" key={element.id}>
+          <div className="preview-field full-width" key={element.id}>
             <label>
               {element.label}
               {element.required && <span className="required">*</span>}
@@ -113,7 +126,7 @@ const Preview = () => {
       
       case 'dropdown':
         return (
-          <div className="preview-field" key={element.id}>
+          <div className={`preview-field ${isFullWidth ? 'full-width' : ''}`} key={element.id}>
             <label>
               {element.label}
               {element.required && <span className="required">*</span>}
@@ -139,14 +152,71 @@ const Preview = () => {
           </div>
         );
       
+      case 'container-heading':
+        return (
+          <div className="preview-container-heading" key={element.id}>
+            <h2>{element.label || 'Container Heading'}</h2>
+          </div>
+        );
+      
+      case 'container-subheading':
+        return (
+          <div className="preview-container-subheading" key={element.id}>
+            <h3>{element.label || 'Container Subheading'}</h3>
+          </div>
+        );
+      
       default:
         return (
-          <div className="preview-field" key={element.id}>
+          <div className={`preview-field ${isFullWidth ? 'full-width' : ''}`} key={element.id}>
             <label>{element.label}</label>
             <input type="text" placeholder="Field" />
           </div>
         );
     }
+  };
+
+  // Organiza elementos em linhas de 2 em 2 (exceto elementos full-width)
+  const renderPreviewContent = () => {
+    const rows = [];
+    let currentRow = [];
+    
+    formElements.forEach((element) => {
+      const isFullWidth = shouldTakeFullWidth(element);
+      
+      if (!isFullWidth && currentRow.length < 2) {
+        // Adiciona ao grid atual se houver espaço
+        currentRow.push(renderFormElement(element));
+      } else {
+        // Fecha a linha atual e começa uma nova
+        if (currentRow.length > 0) {
+          rows.push(
+            <div key={`row-${rows.length}`} className="preview-row">
+              {currentRow}
+            </div>
+          );
+          currentRow = [];
+        }
+        
+        // Adiciona elemento (que ocupa linha inteira)
+        rows.push(
+          <div key={element.id} className="preview-row">
+            {renderFormElement(element)}
+          </div>
+        );
+      }
+    });
+    
+    // Adiciona última linha se houver elementos
+    if (currentRow.length > 0) {
+      rows.push(
+        <div key={`row-${rows.length}`} className="preview-row">
+          {currentRow}
+        </div>
+      );
+    }
+    
+    return rows;
   };
 
   return (
@@ -166,7 +236,9 @@ const Preview = () => {
               <p>Add some elements in the builder first</p>
             </div>
           ) : (
-            formElements.map(renderFormElement)
+            <div className="preview-grid">
+              {renderPreviewContent()}
+            </div>
           )}
           
           {formElements.length > 0 && (
