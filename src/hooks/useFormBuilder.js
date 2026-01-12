@@ -81,11 +81,16 @@ export const FormBuilderProvider = ({ children }) => {
    * Remove um elemento do formulário
    */
   const removeElement = useCallback((elementId) => {
-    setFormElements(prev => prev.filter(element => element.id !== elementId));
+    setFormElements(prev => {
+      const newElements = prev.filter(element => element.id !== elementId);
+      return newElements;
+    });
+    
+    // Limpa a seleção se o elemento removido era o selecionado
     if (selectedElement && selectedElement.id === elementId) {
       setSelectedElement(null);
-    }
-  }, [selectedElement]);
+      }
+    }, [selectedElement]);
 
   /**
    * Move um elemento na lista (reordenar via drag and drop)

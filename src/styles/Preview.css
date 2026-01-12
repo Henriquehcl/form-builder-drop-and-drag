@@ -64,6 +64,13 @@
 
 .preview-field.full-width {
   width: 100%;
+  flex: 1 0 100%;
+}
+
+.preview-field.half-width {
+  width: calc(50% - 0.75rem);
+  flex: 0 0 calc(50% - 0.75rem);
+  min-width: 200px;
 }
 
 .preview-field label {
