@@ -253,7 +253,12 @@ const FormBuilder = () => {
     setDraggedElementId,
     handleElementDrop,
     setGlobalLayoutMode,
-    removeElement
+    removeElement,
+    saveForm,
+    exportForm,
+    clearForm,
+    isSaving,
+    lastSaved
   } = useFormBuilder();
 
   /**
@@ -296,6 +301,36 @@ const FormBuilder = () => {
   const handleDeleteElement = (elementId, e) => {
     e.stopPropagation();
     removeElement(elementId);
+  };
+
+  /**
+   * Salva o formulário
+   */
+  const handleSave = async () => {
+    await saveForm();
+  };
+
+  /**
+   * Exporta o formulário como JSON
+   */
+  const handleExport = () => {
+    exportForm();
+  };
+
+  /**
+   * Limpa o formulário
+   */
+  const handleClear = () => {
+    clearForm();
+  };
+
+  /**
+   * Formata a data do último salvamento
+   */
+  const formatLastSaved = () => {
+    if (!lastSaved) return 'Never';
+    const date = new Date(lastSaved);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   // Se estiver no modo preview, mostra o preview
@@ -395,7 +430,14 @@ const FormBuilder = () => {
   return (
     <div className="form-builder">
       <div className="form-builder-header">
-        <h2>Form Builder</h2>
+        <div className="header-left">
+          <h2>Form Builder</h2>
+          {lastSaved && (
+            <div className="last-saved">
+              Last saved: {formatLastSaved()}
+            </div>
+          )}
+        </div>
         <div className="form-builder-controls">
           <div className="layout-toggle">
             <button 
@@ -420,12 +462,39 @@ const FormBuilder = () => {
             </button>
           </div>
           <div className="form-builder-actions">
-            <button className="btn btn-secondary">CANCEL</button>
-            <button className="btn btn-primary">SAVE</button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={handleClear}
+            >
+              CLEAR
+            </button>
+            <button 
+              className="btn btn-export" 
+              onClick={handleExport}
+              title="Export as JSON"
+            >
+              EXPORT
+            </button>
+            <button 
+              className="btn btn-primary" 
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <span className="spinner"></span>
+                  SAVING...
+                </>
+              ) : (
+                'SAVE'
+              )}
+            </button>
             <button className="btn btn-info" onClick={togglePreviewMode}>
               PREVIEW
             </button>
-            <button className="btn btn-success">PUBLISH</button>
+            <button className="btn btn-success">
+              PUBLISH
+            </button>
           </div>
         </div>
       </div>
@@ -439,13 +508,14 @@ const FormBuilder = () => {
           <div className="empty-state">
             <p>Drag and drop form elements here</p>
             <small>Start building your form by dragging elements from the sidebar</small>
-            <div className="layout-info">
-              <p><strong>Layout Options:</strong></p>
+            <div className="save-info">
+              <p><strong>Save Options:</strong></p>
               <ul>
-                <li>Use <strong>Vertical Layout</strong> for 1 column</li>
-                <li>Use <strong>Grid Layout</strong> for 2 columns</li>
-                <li>In Grid mode, elements can be half-width (50%) or full-width (100%)</li>
-                <li>A single half-width element can be alone on a line</li>
+                <li><strong>SAVE</strong>: Save to backend (simulated)</li>
+                <li><strong>EXPORT</strong>: Download as JSON file</li>
+                <li><strong>CLEAR</strong>: Remove all elements</li>
+                <li><strong>PREVIEW</strong>: See how form will look</li>
+                <li><strong>PUBLISH</strong>: Make form live (coming soon)</li>
               </ul>
             </div>
           </div>

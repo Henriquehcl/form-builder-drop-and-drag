@@ -33,6 +33,10 @@ export const FormBuilderProvider = ({ children }) => {
   // Layout mode global
   const [layoutMode, setLayoutMode] = useState('vertical'); // 'vertical' ou 'grid'
 
+  // Estado para controle de salvamento
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+
   /**
    * Adiciona um novo elemento ao formulário
    */
@@ -81,16 +85,11 @@ export const FormBuilderProvider = ({ children }) => {
    * Remove um elemento do formulário
    */
   const removeElement = useCallback((elementId) => {
-    setFormElements(prev => {
-      const newElements = prev.filter(element => element.id !== elementId);
-      return newElements;
-    });
-    
-    // Limpa a seleção se o elemento removido era o selecionado
+    setFormElements(prev => prev.filter(element => element.id !== elementId));
     if (selectedElement && selectedElement.id === elementId) {
       setSelectedElement(null);
-      }
-    }, [selectedElement]);
+    }
+  }, [selectedElement]);
 
   /**
    * Move um elemento na lista (reordenar via drag and drop)
@@ -172,12 +171,139 @@ export const FormBuilderProvider = ({ children }) => {
     }
   }, [selectedElement]);
 
+  /**
+   * Prepara os dados do formulário para salvar
+   */
+  const prepareFormData = useCallback(() => {
+    return {
+      id: `form-${Date.now()}`,
+      name: 'My Form',
+      description: 'Form created with Form Builder',
+      createdAt: new Date().toISOString(),
+      layout: layoutMode,
+      elements: formElements.map(element => ({
+        id: element.id,
+        type: element.type,
+        label: element.label,
+        required: element.required,
+        placeholder: element.placeholder,
+        options: element.options,
+        width: element.width,
+        // Remover propriedades temporárias
+        value: undefined
+      })),
+      metadata: {
+        totalElements: formElements.length,
+        version: '1.0',
+        createdWith: 'React Form Builder'
+      }
+    };
+  }, [formElements, layoutMode]);
+
+  /**
+   * Salva o formulário (simulação de envio para backend)
+   */
+  const saveForm = useCallback(async () => {
+    if (formElements.length === 0) {
+      alert('Please add at least one element to the form before saving.');
+      return false;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      // Preparar os dados do formulário
+      const formData = prepareFormData();
+      
+      // Aqui você normalmente faria uma chamada para a API do backend
+      // Por enquanto, vamos simular com um timeout e console.log
+      console.log('Form data to save:', formData);
+      
+      // Simulação de chamada à API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Em produção, você faria algo como:
+      // const response = await fetch('/api/forms', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(formData),
+      // });
+      
+      // if (!response.ok) {
+      //   throw new Error('Failed to save form');
+      // }
+      
+      // const result = await response.json();
+      
+      // Simulação de resposta bem-sucedida
+      const result = {
+        success: true,
+        message: 'Form saved successfully!',
+        formId: formData.id,
+        savedAt: new Date().toISOString()
+      };
+      
+      setLastSaved(new Date().toISOString());
+      setIsSaving(false);
+      
+      // Mostrar mensagem de sucesso
+      alert(result.message);
+      console.log('Form saved successfully:', result);
+      
+      return result;
+      
+    } catch (error) {
+      console.error('Error saving form:', error);
+      setIsSaving(false);
+      
+      alert(`Error saving form: ${error.message}`);
+      return false;
+    }
+  }, [formElements, prepareFormData]);
+
+  /**
+   * Exporta o formulário como JSON
+   */
+  const exportForm = useCallback(() => {
+    const formData = prepareFormData();
+    const jsonString = JSON.stringify(formData, null, 2);
+    
+    // Criar um blob e fazer download
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `form-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    alert('Form exported as JSON file!');
+  }, [prepareFormData]);
+
+  /**
+   * Limpa/reseta o formulário
+   */
+  const clearForm = useCallback(() => {
+    if (window.confirm('Are you sure you want to clear the form? All elements will be removed.')) {
+      setFormElements([]);
+      setSelectedElement(null);
+      setLastSaved(null);
+      alert('Form cleared successfully!');
+    }
+  }, []);
+
   const value = {
     formElements,
     selectedElement,
     isPreviewMode,
     layoutMode,
     draggedElement,
+    isSaving,
+    lastSaved,
     addFormElement,
     updateElementProperties,
     removeElement,
@@ -187,7 +313,11 @@ export const FormBuilderProvider = ({ children }) => {
     handleElementDrop,
     togglePreviewMode,
     setGlobalLayoutMode,
-    toggleElementWidth
+    toggleElementWidth,
+    saveForm,
+    exportForm,
+    clearForm,
+    prepareFormData
   };
 
   return (

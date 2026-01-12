@@ -476,3 +476,72 @@
 .delete-btn:hover {
   background-color: #c82333;
 }
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.last-saved {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.btn-export {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: white;
+}
+
+.btn-export:hover {
+  background-color: #138496;
+  border-color: #138496;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.save-info {
+  background-color: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 2rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.save-info p {
+  margin: 0 0 0.5rem 0;
+  color: #0066cc;
+}
+
+.save-info ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #495057;
+}
+
+.save-info li {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
